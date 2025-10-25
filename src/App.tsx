@@ -10,6 +10,9 @@ export default function App() {
             <a href="/" className="hover:underline">
               Dashboard
             </a>
+            <a href="/resumo-reservas" className="hover:underline">
+              Reservas
+            </a>
           </nav>
         </div>
       </header>

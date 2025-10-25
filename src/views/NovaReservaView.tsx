@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import ModalConfirmacao from "../components/ModalConfirmacao";
 
@@ -5,14 +6,30 @@ interface FormReservaProps {
   espaco: string;
   dia: string;
   hora: string;
+  categoria: string;
 }
 
-export default function NovaReservaView({ espaco, dia, hora }: FormReservaProps) {
+type Opcao =
+  | "Graduação"
+  | "Pós-Graduação"
+  | "Doutorado"
+  | "Mestrado"
+  | "Negócios"
+  | "Eventos"
+  | "Seleção"
+  | "Aluguel";
+
+export default function NovaReservaView({
+  espaco,
+  dia,
+  hora,
+  categoria,
+}: FormReservaProps) {
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [matricula, setMatricula] = useState("");
+  const [opcao, setOpcao] = useState<Opcao | "">("");
   const [showModal, setShowModal] = useState(false);
-
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,20 +37,20 @@ export default function NovaReservaView({ espaco, dia, hora }: FormReservaProps)
       espaco,
       dia,
       hora,
+      categoria: opcao,
       nome,
       cpf,
       matricula,
     });
-     // Exibe modal de confirmação
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    // opcional: limpar formulário
     setNome("");
     setCpf("");
     setMatricula("");
+    setOpcao("");
   };
 
   return (
@@ -42,7 +59,9 @@ export default function NovaReservaView({ espaco, dia, hora }: FormReservaProps)
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block mb-1 text-sm font-medium">Nome completo</label>
+          <label className="block mb-1 text-sm font-medium">
+            Nome completo
+          </label>
           <input
             type="text"
             value={nome}
@@ -74,6 +93,29 @@ export default function NovaReservaView({ espaco, dia, hora }: FormReservaProps)
           />
         </div>
 
+        <div>
+          <label className="block mb-1 text-sm font-medium" htmlFor="categoria">
+            Categoria
+          </label>
+          <select
+            id="categoria"
+            value={opcao}
+            onChange={(e) => setOpcao(e.target.value as Opcao)}
+            className="w-full border rounded p-2"
+            required
+          >
+            <option value="">Selecione...</option>
+            <option value="Graduação">Graduação</option>
+            <option value="Pós-Graduação">Pós-Graduação</option>
+            <option value="Doutorado">Doutorado</option>
+            <option value="Mestrado">Mestrado</option>
+            <option value="Negócios">Negócios</option>
+            <option value="Eventos">Eventos</option>
+            <option value="Seleção">Seleção</option>
+            <option value="Aluguel">Aluguel</option>
+          </select>
+        </div>
+
         <button
           type="submit"
           className="w-full bg-[#0033A0] text-white py-2 rounded-lg hover:bg-[#1E4BD1]"
@@ -82,7 +124,6 @@ export default function NovaReservaView({ espaco, dia, hora }: FormReservaProps)
         </button>
       </form>
 
-         {/* Modal de Confirmação */}
       <ModalConfirmacao
         isOpen={showModal}
         onClose={handleCloseModal}
@@ -90,7 +131,6 @@ export default function NovaReservaView({ espaco, dia, hora }: FormReservaProps)
         dia={dia}
         hora={hora}
       />
-
     </div>
   );
 }
