@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
+import axios from "axios";
 
-// Estrutura de uma reserva, agora com campo 'categoria'
+// Estrutura de uma reserva
 interface Reserva {
   id: number;
   espaco: string;
@@ -22,7 +23,7 @@ interface Reserva {
   status: "Confirmada" | "Pendente" | "Cancelada";
 }
 
-// Mapa de cores fixas por categoria — garante identidade visual e consistência
+// Mapa de cores fixas por categoria
 const categoriaCores: Record<
   Reserva["categoria"],
   { bg: string; text: string; border: string }
@@ -77,66 +78,18 @@ export default function ResumoReservasView() {
   const [filtroEspaco, setFiltroEspaco] = useState<string>("Todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("Todas");
 
-  // Dados fictícios para demonstração
+  // Buscar as reservas da API
   useEffect(() => {
-    setReservas([
-      {
-        id: 1,
-        espaco: "Quadra A",
-        usuario: "João Silva",
-        matricula: "202310123",
-        telefone: "(85) 99876-1234",
-        data: "2025-10-26",
-        hora: "14:00 - 15:00",
-        categoria: "Graduação",
-        status: "Confirmada",
-      },
-      {
-        id: 2,
-        espaco: "Arena Beach 3",
-        usuario: "Maria Oliveira",
-        matricula: "202208543",
-        telefone: "(85) 98123-5678",
-        data: "2025-10-27",
-        hora: "16:00 - 17:00",
-        categoria: "Eventos",
-        status: "Pendente",
-      },
-      {
-        id: 3,
-        espaco: "Sala Multifuncional",
-        usuario: "Pedro Gomes",
-        matricula: "202105789",
-        telefone: "(85) 99765-4321",
-        data: "2025-10-29",
-        hora: "09:00 - 10:00",
-        categoria: "Mestrado",
-        status: "Cancelada",
-      },
-      {
-        id: 4,
-        espaco: "Quadra B",
-        usuario: "Ana Costa",
-        matricula: "202309876",
-        telefone: "(85) 98765-4321",
-        data: "2025-10-30",
-        hora: "11:00 - 12:00",
-        categoria: "Negócios",
-        status: "Confirmada",
-      },
-      {
-        id: 5,
-        espaco: "GP1",
-        usuario: "Lucas Martins",
-        matricula: "202207654",
-        telefone: "(85) 99654-3210",
-        data: "2025-10-28",
-        hora: "15:00 - 16:00",
-        categoria: "Seleção",
-        status: "Pendente",
-      },
-    ]);
-  }, []);
+    const fetchReservas = async () => {
+      try {
+        const response = await axios.get("http://localhost:5137/reservas");
+        setReservas(response.data); // Atualiza o estado com as reservas do banco
+      } catch (error) {
+        console.error("Erro ao buscar reservas:", error);
+      }
+    };
+    fetchReservas();
+  }, []); // O array vazio significa que o efeito será executado apenas uma vez, quando o componente for montado
 
   // --- Lógica de filtragem ---
   // Aplica os filtros selecionados pelo usuário em tempo real
@@ -166,7 +119,6 @@ export default function ResumoReservasView() {
       <header className="bg-[#0033A0] text-white shadow-md rounded-md">
         <div className="container mx-auto flex justify-center items-center px-6 py-4">
           <h1 className="text-2xl font-bold">Resumo de Reservas</h1>
-          <nav className="space-x-4 text-sm md:text-base"></nav>
         </div>
       </header>
 
@@ -225,8 +177,20 @@ export default function ResumoReservasView() {
         {/* --- Grid de cards --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {reservasFiltradas.map((reserva) => {
-            // Seleciona a paleta de cores da categoria atual
-            const cores = categoriaCores[reserva.categoria];
+            // Adicionando uma verificação para garantir que a categoria existe em categoriaCores
+            const cores = categoriaCores[reserva.categoria] || {
+              bg: "bg-gray-100", // cor de fundo padrão
+              text: "text-gray-800", // cor do texto padrão
+              border: "border-gray-400", // borda padrão
+            };
+
+            // Verificando se a data existe antes de usar toLocaleDateString
+            const dataFormatada = reserva.data
+              ? new Date(reserva.data).toLocaleDateString("pt-BR")
+              : "Data não disponível"; // Fallback caso a data seja inválida ou ausente
+
+            // Verificando se o id existe e é um número válido
+            const reservaId = reserva.id ? reserva.id.toString().padStart(3, "0") : "000"; // Fallback para id
 
             return (
               <div
@@ -247,11 +211,10 @@ export default function ResumoReservasView() {
                     </span>
                   </div>
                   <p className="text-gray-700 font-medium">
-                    {new Date(reserva.data).toLocaleDateString("pt-BR")} |{" "}
-                    {reserva.hora}
+                    {dataFormatada} | {reserva.hora}
                   </p>
                   <p className="text-gray-500 text-sm">
-                    Reserva #{reserva.id.toString().padStart(3, "0")}
+                    Reserva #{reservaId} {/* Usando o valor do id formatado */}
                   </p>
                 </div>
 
@@ -262,15 +225,11 @@ export default function ResumoReservasView() {
                     {reserva.usuario}
                   </p>
                   <p>
-                    <span className="font-medium text-[#0033A0]">
-                      Matrícula:
-                    </span>{" "}
+                    <span className="font-medium text-[#0033A0]">Matrícula:</span>{" "}
                     {reserva.matricula}
                   </p>
                   <p>
-                    <span className="font-medium text-[#0033A0]">
-                      Telefone:
-                    </span>{" "}
+                    <span className="font-medium text-[#0033A0]">Telefone:</span>{" "}
                     {reserva.telefone}
                   </p>
                 </div>
@@ -288,11 +247,6 @@ export default function ResumoReservasView() {
                   >
                     {reserva.status}
                   </span>
-
-                  {/* Deixa sem por enquanto, dps a gente coloca */}
-                  {/*                   <button className="text-[#0033A0] font-medium hover:underline text-sm">
-                    Detalhes
-                  </button> */}
                 </div>
               </div>
             );

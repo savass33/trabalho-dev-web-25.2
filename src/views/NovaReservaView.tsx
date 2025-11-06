@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import ModalConfirmacao from "../components/ModalConfirmacao";
+import axios from "axios";
 
 interface FormReservaProps {
   espaco: string;
@@ -31,18 +31,27 @@ export default function NovaReservaView({
   const [opcao, setOpcao] = useState<Opcao | "">("");
   const [showModal, setShowModal] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({
+
+    const reservaData = {
       espaco,
       dia,
       hora,
-      categoria: opcao,
       nome,
       cpf,
       matricula,
-    });
-    setShowModal(true);
+      categoria: opcao,
+    };
+
+    try {
+      const response = await axios.post("http://localhost:5000/reservar", reservaData);
+      
+      console.log(response.data);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Erro ao criar reserva:", error);
+    }
   };
 
   const handleCloseModal = () => {
