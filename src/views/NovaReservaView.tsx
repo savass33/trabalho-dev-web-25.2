@@ -45,7 +45,7 @@ export default function NovaReservaView({
     };
 
     try {
-      const response = await axios.post("http://localhost:5000/reservar", reservaData);
+      const response = await axios.post("/api/reservar", reservaData);
       
       console.log(response.data);
       setShowModal(true);

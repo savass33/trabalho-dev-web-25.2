@@ -2,30 +2,31 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-// Estrutura de uma reserva
+// Estrutura real de uma reserva (vinda do MongoDB)
 interface Reserva {
-  id: number;
+  _id: string;
   espaco: string;
-  usuario: string;
-  matricula: string;
-  telefone: string;
-  data: string;
+  dia: string;
   hora: string;
-  categoria:
-    | "Graduação"
-    | "Pós-Graduação"
-    | "Doutorado"
-    | "Mestrado"
-    | "Negócios"
-    | "Eventos"
-    | "Seleção"
-    | "Aluguel";
-  status: "Confirmada" | "Pendente" | "Cancelada";
+  usuario: {
+    nome: string;
+    cpf: string;
+    matricula: string;
+    categoria:
+      | "Graduação"
+      | "Pós-Graduação"
+      | "Doutorado"
+      | "Mestrado"
+      | "Negócios"
+      | "Eventos"
+      | "Seleção"
+      | "Aluguel";
+  };
 }
 
 // Mapa de cores fixas por categoria
 const categoriaCores: Record<
-  Reserva["categoria"],
+  Reserva["usuario"]["categoria"],
   { bg: string; text: string; border: string }
 > = {
   Graduação: {
@@ -72,9 +73,6 @@ const categoriaCores: Record<
 
 export default function ResumoReservasView() {
   const [reservas, setReservas] = useState<Reserva[]>([]);
-  const [filtroStatus, setFiltroStatus] = useState<
-    "Todos" | "Confirmada" | "Pendente" | "Cancelada"
-  >("Todos");
   const [filtroEspaco, setFiltroEspaco] = useState<string>("Todos");
   const [filtroCategoria, setFiltroCategoria] = useState<string>("Todas");
 
@@ -89,19 +87,7 @@ export default function ResumoReservasView() {
       }
     };
     fetchReservas();
-  }, []); // O array vazio significa que o efeito será executado apenas uma vez, quando o componente for montado
-
-  // --- Lógica de filtragem ---
-  // Aplica os filtros selecionados pelo usuário em tempo real
-  const reservasFiltradas = reservas.filter((reserva) => {
-    const statusMatch =
-      filtroStatus === "Todos" || reserva.status === filtroStatus;
-    const espacoMatch =
-      filtroEspaco === "Todos" || reserva.espaco === filtroEspaco;
-    const categoriaMatch =
-      filtroCategoria === "Todas" || reserva.categoria === filtroCategoria;
-    return statusMatch && espacoMatch && categoriaMatch;
-  });
+  }, []);
 
   // Criação dinâmica das listas de filtros (sem duplicações)
   const espacos = [
@@ -110,8 +96,18 @@ export default function ResumoReservasView() {
   ];
   const categorias = [
     "Todas",
-    ...Array.from(new Set(reservas.map((r) => r.categoria))),
+    ...Array.from(new Set(reservas.map((r) => r.usuario.categoria))),
   ];
+
+  // --- Lógica de filtragem ---
+  const reservasFiltradas = reservas.filter((reserva) => {
+    const espacoMatch =
+      filtroEspaco === "Todos" || reserva.espaco === filtroEspaco;
+    const categoriaMatch =
+      filtroCategoria === "Todas" ||
+      reserva.usuario.categoria === filtroCategoria;
+    return espacoMatch && categoriaMatch;
+  });
 
   return (
     <div className="min-h-screen bg-[#F5F7FB] flex flex-col">
@@ -130,21 +126,6 @@ export default function ResumoReservasView() {
 
         {/* --- Filtros --- */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          {/* Filtro por status */}
-          <div>
-            <label className="font-medium text-gray-700 mr-2">Status:</label>
-            <select
-              className="border border-gray-300 rounded px-3 py-1"
-              value={filtroStatus}
-              onChange={(e) => setFiltroStatus(e.target.value as any)}
-            >
-              <option>Todos</option>
-              <option>Confirmada</option>
-              <option>Pendente</option>
-              <option>Cancelada</option>
-            </select>
-          </div>
-
           {/* Filtro por espaço */}
           <div>
             <label className="font-medium text-gray-700 mr-2">Espaço:</label>
@@ -177,24 +158,16 @@ export default function ResumoReservasView() {
         {/* --- Grid de cards --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {reservasFiltradas.map((reserva) => {
-            // Adicionando uma verificação para garantir que a categoria existe em categoriaCores
-            const cores = categoriaCores[reserva.categoria] || {
-              bg: "bg-gray-100", // cor de fundo padrão
-              text: "text-gray-800", // cor do texto padrão
-              border: "border-gray-400", // borda padrão
-            };
+            const cores =
+              categoriaCores[reserva.usuario.categoria] || categoriaCores["Aluguel"];
 
-            // Verificando se a data existe antes de usar toLocaleDateString
-            const dataFormatada = reserva.data
-              ? new Date(reserva.data).toLocaleDateString("pt-BR")
-              : "Data não disponível"; // Fallback caso a data seja inválida ou ausente
-
-            // Verificando se o id existe e é um número válido
-            const reservaId = reserva.id ? reserva.id.toString().padStart(3, "0") : "000"; // Fallback para id
+            const dataFormatada = reserva.dia
+              ? new Date(reserva.dia).toLocaleDateString("pt-BR")
+              : "Data não disponível";
 
             return (
               <div
-                key={reserva.id}
+                key={reserva._id}
                 className={`bg-white rounded-2xl shadow-md hover:shadow-lg transition p-6 flex flex-col justify-between border-2 ${cores.border}`}
               >
                 {/* Cabeçalho do card */}
@@ -203,50 +176,36 @@ export default function ResumoReservasView() {
                     <h3 className="text-xl font-semibold text-[#0033A0]">
                       {reserva.espaco}
                     </h3>
-                    {/* Tag de categoria com cor exclusiva */}
                     <span
                       className={`px-3 py-1 text-xs font-semibold rounded-full ${cores.bg} ${cores.text}`}
                     >
-                      {reserva.categoria}
+                      {reserva.usuario.categoria}
                     </span>
                   </div>
                   <p className="text-gray-700 font-medium">
                     {dataFormatada} | {reserva.hora}
                   </p>
                   <p className="text-gray-500 text-sm">
-                    Reserva #{reservaId} {/* Usando o valor do id formatado */}
+                    ID: {reserva._id.substring(0, 6)}...
                   </p>
                 </div>
 
                 {/* Corpo com informações do usuário */}
                 <div className="space-y-1 text-gray-700 text-sm">
                   <p>
-                    <span className="font-medium text-[#0033A0]">Usuário:</span>{" "}
-                    {reserva.usuario}
+                    <span className="font-medium text-[#0033A0]">Nome:</span>{" "}
+                    {reserva.usuario?.nome ?? "-"}
                   </p>
                   <p>
-                    <span className="font-medium text-[#0033A0]">Matrícula:</span>{" "}
-                    {reserva.matricula}
+                    <span className="font-medium text-[#0033A0]">CPF:</span>{" "}
+                    {reserva.usuario?.cpf ?? "-"}
                   </p>
                   <p>
-                    <span className="font-medium text-[#0033A0]">Telefone:</span>{" "}
-                    {reserva.telefone}
+                    <span className="font-medium text-[#0033A0]">
+                      Matrícula:
+                    </span>{" "}
+                    {reserva.usuario?.matricula ?? "-"}
                   </p>
-                </div>
-
-                {/* Rodapé: status e ação */}
-                <div className="mt-4 flex justify-between items-center">
-                  <span
-                    className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                      reserva.status === "Confirmada"
-                        ? "bg-green-100 text-green-700"
-                        : reserva.status === "Pendente"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {reserva.status}
-                  </span>
                 </div>
               </div>
             );
