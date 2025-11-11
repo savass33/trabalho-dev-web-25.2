@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 
 interface ModalConfirmacaoProps {
@@ -17,6 +17,7 @@ export default function ModalConfirmacao({
   hora,
 }: ModalConfirmacaoProps) {
   if (!isOpen) return null;
+  const parsed = parse(dia, "yyyy-MM-dd",new Date());
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -32,7 +33,8 @@ export default function ModalConfirmacao({
         <div className="bg-gray-100 rounded-lg p-3 mb-4">
           <p><span className="font-medium text-[#0033A0]">Espaço:</span> {espaco}</p>
           <p><span className="font-medium text-[#0033A0]">Dia:</span> {" "}
-            {format(new Date(dia), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
+            {format(parsed, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+          </p>
           <p><span className="font-medium text-[#0033A0]">Horário:</span> {hora}</p>
         </div>
 

@@ -80,7 +80,7 @@ export default function ResumoReservasView() {
   useEffect(() => {
     const fetchReservas = async () => {
       try {
-        const response = await axios.get("http://localhost:5137/reservas");
+        const response = await axios.get("http://localhost:5137/api/reservas");
         setReservas(response.data); // Atualiza o estado com as reservas do banco
       } catch (error) {
         console.error("Erro ao buscar reservas:", error);

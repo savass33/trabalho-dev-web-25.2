@@ -15,8 +15,12 @@ export default function CalendarComponent({ onSelectDay }: CalendarProps) {
   const handleChange = (newValue: Value) => {
     // Verifique se 'newValue' é de fato uma instância de Date antes de usar
     if (newValue instanceof Date) {
-      setValue(newValue);
-      const formatted = format(newValue, "yyyy-MM-dd");
+      const adjusted = new Date(newValue);
+
+      adjusted.setHours(12,0,0,0);
+
+      setValue(adjusted);
+      const formatted = format(adjusted, "yyyy-MM-dd");
       onSelectDay(formatted);
     }
   };

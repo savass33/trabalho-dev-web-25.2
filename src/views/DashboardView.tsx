@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SpaceCard from "../components/SpaceCard";
 
@@ -11,6 +11,7 @@ import PoolIcon from "@mui/icons-material/Pool";
 import SportsTennisIcon from "@mui/icons-material/SportsTennis";
 import StadiumIcon from "@mui/icons-material/Stadium";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
+import { getReservasHojePorEspaco } from "../services/api";
 
 interface Espaco { nome: string; reservas: number; }
 interface Setor  { nome: string; espacos: Espaco[]; }
@@ -18,50 +19,50 @@ interface Setor  { nome: string; espacos: Espaco[]; }
 export default function DashboardView() {
   const navigate = useNavigate();
 
-  const [setores] = useState<Setor[]>([
+  const [setores,setSetores] = useState<Setor[]>([
     { nome: "Academia", espacos: [
-      { nome: "Sala Multifuncional", reservas: 2 },
-      { nome: "Spinning", reservas: 3 },
-      { nome: "Avaliação Física", reservas: 3 },
-      { nome: "Pilates", reservas: 3 },
-      { nome: "Sala X101", reservas: 3 },
+      { nome: "Sala Multifuncional", reservas: 0 },
+      { nome: "Spinning", reservas: 0 },
+      { nome: "Avaliação Física", reservas: 0 },
+      { nome: "Pilates", reservas: 0 },
+      { nome: "Sala X101", reservas: 0 },
     ]},
     { nome: "Arena Beach", espacos: [
-      { nome: "Arena Beach 1", reservas: 3 },
-      { nome: "Arena Beach 2", reservas: 3 },
-      { nome: "Arena Beach 3", reservas: 3 },
-      { nome: "Arena Beach 4", reservas: 3 },
-      { nome: "Arena Beach 5", reservas: 3 },
-      { nome: "Arena Beach 6", reservas: 3 },
+      { nome: "Arena Beach 1", reservas: 0 },
+      { nome: "Arena Beach 2", reservas: 0 },
+      { nome: "Arena Beach 3", reservas: 0 },
+      { nome: "Arena Beach 4", reservas: 0 },
+      { nome: "Arena Beach 5", reservas: 0 },
+      { nome: "Arena Beach 6", reservas: 0 },
     ]},
     { nome: "Área Verde", espacos: [
-      { nome: "Área Verde Campo Society", reservas: 3 },
-      { nome: "Área Verde Estádio de Atletismo", reservas: 3 },
+      { nome: "Área Verde Campo Society", reservas: 0 },
+      { nome: "Área Verde Estádio de Atletismo", reservas: 0 },
     ]},
     { nome: "Ginásio Poliesportivo", espacos: [
-      { nome: "Quadra A", reservas: 3 },
-      { nome: "Quadra B", reservas: 3 },
-      { nome: "Quadra C", reservas: 3 },
-      { nome: "Sala Multifuncional", reservas: 2 },
-      { nome: "Sala GP1", reservas: 2 },
-      { nome: "Sala GP2", reservas: 2 },
-      { nome: "Sala GP4", reservas: 2 },
+      { nome: "Quadra A", reservas: 0 },
+      { nome: "Quadra B", reservas: 0 },
+      { nome: "Quadra C", reservas: 0 },
+      { nome: "Sala Multifuncional", reservas: 0 },
+      { nome: "Sala GP1", reservas: 0 },
+      { nome: "Sala GP2", reservas: 0 },
+      { nome: "Sala GP4", reservas: 0 },
     ]},
     { nome: "Estádio de Atletismo", espacos: [
-      { nome: "Pista", reservas: 3 },
-      { nome: "Campo de Futebol", reservas: 3 },
-      { nome: "Sala EA1", reservas: 3 },
+      { nome: "Pista", reservas: 0 },
+      { nome: "Campo de Futebol", reservas: 0 },
+      { nome: "Sala EA1", reservas: 0 },
     ]},
     { nome: "Campo Society", espacos: [
-      { nome: "Campo Society", reservas: 3 },
-      { nome: "Caramanchão", reservas: 3 },
+      { nome: "Campo Society", reservas: 0 },
+      { nome: "Caramanchão", reservas: 0 },
     ]},
-    { nome: "Piscina", espacos: [{ nome: "Piscina Olímpica", reservas: 3 }]},
+    { nome: "Piscina", espacos: [{ nome: "Piscina Olímpica", reservas: 0 }]},
     { nome: "Complexo de Tênis", espacos: [
-      { nome: "Quadra de Tênis 1", reservas: 3 },
-      { nome: "Quadra de Tênis 2", reservas: 3 },
-      { nome: "Quadra de Tênis 3", reservas: 3 },
-      { nome: "Quadra de Tênis 4", reservas: 3 },
+      { nome: "Quadra de Tênis 1", reservas: 0 },
+      { nome: "Quadra de Tênis 2", reservas: 0 },
+      { nome: "Quadra de Tênis 3", reservas: 0 },
+      { nome: "Quadra de Tênis 4", reservas: 0 },
     ]},
   ]);
 
@@ -78,6 +79,32 @@ export default function DashboardView() {
     if (nome.includes("Tênis")) return <SportsTennisIcon {...commonProps} />;
     return <ParkIcon {...commonProps} />;
   };
+  
+  useEffect(() => {
+    async function carregarReservas() {
+      try {
+        const data = await getReservasHojePorEspaco(); // chama API
+        const mapa = Object.fromEntries(
+          data.map((item) => [item.espaco, item.count])
+        );
+
+        // Atualiza os setores aplicando as contagens corretas
+        setSetores((prev) =>
+          prev.map((setor) => ({
+            ...setor,
+            espacos: setor.espacos.map((espaco) => ({
+              ...espaco,
+              reservas: mapa[espaco.nome] || 0, // se não tiver, fica 0
+            })),
+          }))
+        );
+      } catch (erro) {
+        console.error("Erro ao carregar reservas:", erro);
+      }
+    }
+
+    carregarReservas();
+  }, []);
 
   return (
     <div className="container mx-auto">

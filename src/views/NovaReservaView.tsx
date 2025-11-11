@@ -1,7 +1,6 @@
 import { useState } from "react";
 import ModalConfirmacao from "../components/ModalConfirmacao";
-import axios from "axios";
-
+import { api } from "../services/api";
 interface FormReservaProps {
   espaco: string;
   dia: string;
@@ -33,10 +32,11 @@ export default function NovaReservaView({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const isoDate = new Date(`${dia}T12:00:00Z`).toISOString();
 
     const reservaData = {
       espaco,
-      dia,
+      dia: isoDate,
       hora,
       nome,
       cpf,
@@ -45,7 +45,7 @@ export default function NovaReservaView({
     };
 
     try {
-      const response = await axios.post("/api/reservar", reservaData);
+      const response = await api.post("/reservar", reservaData);
       
       console.log(response.data);
       setShowModal(true);
