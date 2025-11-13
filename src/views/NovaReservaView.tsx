@@ -1,6 +1,8 @@
-import { useState } from "react";
+import React,{ useState } from "react";
 import ModalConfirmacao from "../components/ModalConfirmacao";
 import { api } from "../services/api";
+import { IMaskInput } from "react-imask";
+
 interface FormReservaProps {
   espaco: string;
   dia: string;
@@ -18,6 +20,28 @@ type Opcao =
   | "Seleção"
   | "Aluguel";
 
+  function validarCPF(cpf:string) {
+    cpf = cpf.replace(/[^\d]+/g, ""); // remove tudo que não for número
+    if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+
+    let soma = 0;
+    for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i);
+    let resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf.charAt(9))) return false;
+
+    soma = 0;
+    for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i);
+      resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+      return resto === parseInt(cpf.charAt(10));
+    }
+
+  function validarMatricula(matricula:string){
+    const regex = /^\d{7}$/;
+    return regex.test(matricula);
+  }
+
 export default function NovaReservaView({
   espaco,
   dia,
@@ -29,6 +53,14 @@ export default function NovaReservaView({
   const [matricula, setMatricula] = useState("");
   const [opcao, setOpcao] = useState<Opcao | "">("");
   const [showModal, setShowModal] = useState(false);
+  const [erroCpf, setErroCpf] = useState("");
+
+  const handleBlurCpf = () => {
+    const cpfSemMascara = cpf.replace(/[^\d]+/g, "");
+    if (!validarCPF(cpfSemMascara)) {
+      setErroCpf("CPF inválido. Verifique e tente novamente.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +75,8 @@ export default function NovaReservaView({
       matricula,
       categoria: opcao,
     };
+    if(erroCpf)return;
+    if(!validarMatricula(matricula)) return;
 
     try {
       const response = await api.post("/reservar", reservaData);
@@ -74,21 +108,35 @@ export default function NovaReservaView({
           <input
             type="text"
             value={nome}
-            onChange={(e) => setNome(e.target.value)}
+            onChange={(e) => {
+              const valor = e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, "");
+              setNome(valor);
+            }}
             className="w-full border rounded p-2"
             required
           />
         </div>
 
         <div>
-          <label className="block mb-1 text-sm font-medium">CPF</label>
-          <input
-            type="text"
+          <label htmlFor="cpf" className="block mb-1 font-medium">
+            CPF:
+          </label>
+
+         <IMaskInput
+            mask="000.000.000-00"
             value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
-            className="w-full border rounded p-2"
+            onAccept={(value: any) => {
+              setCpf(value);
+              setErroCpf(""); // limpa erro enquanto digita
+            }}
+            onBlur={handleBlurCpf}
+            className={`w-full border rounded p-2 ${
+              erroCpf ? "border-red-500" : "border-gray-300"
+            }`}
+            placeholder="Digite seu CPF"
             required
           />
+
         </div>
 
         <div>
@@ -96,7 +144,10 @@ export default function NovaReservaView({
           <input
             type="text"
             value={matricula}
-            onChange={(e) => setMatricula(e.target.value)}
+            onChange={(e) => {
+              const valor = e.target.value.replace(/\D/g, "").slice(0, 7);
+              setMatricula(valor);
+            }}
             className="w-full border rounded p-2"
             required
           />

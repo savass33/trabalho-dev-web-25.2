@@ -109,6 +109,33 @@ export default function ResumoReservasView() {
     return espacoMatch && categoriaMatch;
   });
 
+  
+  const reservasOrdenadas = [...reservasFiltradas].sort((a,b)=>{
+    const hoje = new Date();
+
+    const dataA = a.dia ? new Date(a.dia) : null;
+    const dataB = b.dia ? new Date(b.dia) : null;
+
+    if (!dataA && !dataB) return 0;
+    if (!dataA) return 1; // envia reservas sem data para o final
+    if (!dataB) return -1;
+
+    const diffA = Math.abs(dataA.getTime() - hoje.getTime());
+    const diffB = Math.abs(dataB.getTime() - hoje.getTime());
+
+   if (diffA !== diffB) {
+      return diffA - diffB; 
+    }
+  
+    const [horaA, minutoA] = a.hora.split(":").map(Number);
+    const [horaB, minutoB] = b.hora.split(":").map(Number);
+
+    const totalMinutosA = horaA * 60 + minutoA;
+    const totalMinutosB = horaB * 60 + minutoB;
+
+    return totalMinutosA - totalMinutosB;
+  });
+
   return (
     <div className="min-h-screen bg-[#F5F7FB] flex flex-col">
       {/* Cabeçalho principal */}
@@ -157,7 +184,7 @@ export default function ResumoReservasView() {
 
         {/* --- Grid de cards --- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reservasFiltradas.map((reserva) => {
+          {reservasOrdenadas.map((reserva) => {
             const cores =
               categoriaCores[reserva.usuario.categoria] || categoriaCores["Aluguel"];
 

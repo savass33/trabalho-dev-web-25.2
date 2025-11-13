@@ -28,6 +28,7 @@ export default function DetalheEspacoView() {
         {diaSelecionado && (
             <Horarios
             dia = {diaSelecionado}
+            espaco={nome ?? ""}
             horaSelecionada={horaSelecionada}
             onSelectHour={(hora)=>{
                 setHoraSelecionada(hora)
@@ -38,7 +39,7 @@ export default function DetalheEspacoView() {
 
         {ReservaView && horaSelecionada && (
           <NovaReservaView
-          espaco={nome ?? ""}
+            espaco={nome ?? ""}
           dia={diaSelecionado!}
           hora={horaSelecionada!}
         />

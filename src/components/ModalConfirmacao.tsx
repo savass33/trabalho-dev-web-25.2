@@ -1,5 +1,6 @@
 import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
+import { useNavigate } from "react-router-dom";
 
 interface ModalConfirmacaoProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export default function ModalConfirmacao({
 }: ModalConfirmacaoProps) {
   if (!isOpen) return null;
   const parsed = parse(dia, "yyyy-MM-dd",new Date());
+  const navigate =useNavigate();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -40,7 +42,10 @@ export default function ModalConfirmacao({
 
         <div className="flex justify-end">
           <button
-            onClick={onClose}
+            onClick={()=>{
+              onClose();
+              navigate("/resumo-reservas");
+            }}
             className="bg-[#0033A0] text-white px-4 py-2 rounded-lg hover:bg-[#1E4BD1] transition"
           >
             Fechar
