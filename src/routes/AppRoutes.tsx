@@ -10,7 +10,8 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<DashboardView />} />
       <Route path="/dashboard" element={<DashboardView />} />
-      <Route path="/espaco/:nome" element={<DetalheEspacoView />} /> {/* 👈 nova rota */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/espaco/:nome" element={<DetalheEspacoView />} />
       <Route path="/resumo-reservas" element={<ResumoReservasView />} />
       <Route path="/login" element={<Login />} />
     </Routes>
