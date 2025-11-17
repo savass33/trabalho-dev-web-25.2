@@ -13,6 +13,9 @@ export default function App() {
             <a href="/resumo-reservas" className="hover:underline">
               Reservas
             </a>
+            <a href="/historico" className="hover:underline">
+              Historico
+            </a>
           </nav>
         </div>
       </header>
