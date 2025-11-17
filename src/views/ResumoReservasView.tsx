@@ -81,7 +81,18 @@ export default function ResumoReservasView() {
     const fetchReservas = async () => {
       try {
         const response = await axios.get("http://localhost:5137/api/reservas");
-        setReservas(response.data); // Atualiza o estado com as reservas do banco
+        const reservas = response.data;
+        const agora = new Date();
+
+        const futuras = reservas.filter((reserva: any) => {
+          const datamongo = new Date(reserva.dia);
+          const [h, m] = reserva.hora.split(":");
+
+          datamongo.setHours(Number(h), Number(m), 0, 0);
+
+          return datamongo >= agora;
+        });
+        setReservas(futuras); // Atualiza o estado com as reservas do banco
       } catch (error) {
         console.error("Erro ao buscar reservas:", error);
       }
@@ -109,8 +120,7 @@ export default function ResumoReservasView() {
     return espacoMatch && categoriaMatch;
   });
 
-  
-  const reservasOrdenadas = [...reservasFiltradas].sort((a,b)=>{
+  const reservasOrdenadas = [...reservasFiltradas].sort((a, b) => {
     const hoje = new Date();
 
     const dataA = a.dia ? new Date(a.dia) : null;
@@ -123,10 +133,10 @@ export default function ResumoReservasView() {
     const diffA = Math.abs(dataA.getTime() - hoje.getTime());
     const diffB = Math.abs(dataB.getTime() - hoje.getTime());
 
-   if (diffA !== diffB) {
-      return diffA - diffB; 
+    if (diffA !== diffB) {
+      return diffA - diffB;
     }
-  
+
     const [horaA, minutoA] = a.hora.split(":").map(Number);
     const [horaB, minutoB] = b.hora.split(":").map(Number);
 
@@ -186,7 +196,8 @@ export default function ResumoReservasView() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {reservasOrdenadas.map((reserva) => {
             const cores =
-              categoriaCores[reserva.usuario.categoria] || categoriaCores["Aluguel"];
+              categoriaCores[reserva.usuario.categoria] ||
+              categoriaCores["Aluguel"];
 
             const dataFormatada = reserva.dia
               ? new Date(reserva.dia).toLocaleDateString("pt-BR")

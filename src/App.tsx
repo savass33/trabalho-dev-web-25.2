@@ -14,7 +14,7 @@ export default function App() {
               Reservas
             </a>
             <a href="/historico" className="hover:underline">
-              Historico
+              Histórico
             </a>
           </nav>
         </div>

@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
 
 interface Reserva {
@@ -24,7 +23,7 @@ interface Reserva {
 }
 
 export default function HistoricoReservas() {
-  const [data, setData] = useState<Reserva[]>([]);
+  const [dataHistorico, setDataHistorico] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +50,7 @@ export default function HistoricoReservas() {
           return dataMongo < agora;
         });
 
-        setData(historico);
+        setDataHistorico(historico);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -61,6 +60,32 @@ export default function HistoricoReservas() {
 
     fetchData();
   }, []);
+
+  const reservasOrdenadas = [...dataHistorico].sort((a, b) => {
+    const hoje = new Date();
+
+    const dataA = a.dia ? new Date(a.dia) : null;
+    const dataB = b.dia ? new Date(b.dia) : null;
+
+    if (!dataA && !dataB) return 0;
+    if (!dataA) return 1; // envia reservas sem data para o final
+    if (!dataB) return -1;
+
+    const diffA = Math.abs(dataA.getTime() - hoje.getTime());
+    const diffB = Math.abs(dataB.getTime() - hoje.getTime());
+
+    if (diffA !== diffB) {
+      return diffA - diffB;
+    }
+
+    const [horaA, minutoA] = a.hora.split(":").map(Number);
+    const [horaB, minutoB] = b.hora.split(":").map(Number);
+
+    const totalMinutosA = horaA * 60 + minutoA;
+    const totalMinutosB = horaB * 60 + minutoB;
+
+    return totalMinutosA - totalMinutosB;
+  });
 
   if (loading) return <p>Carregando...</p>;
   if (error) return <p className="text-red-600">Erro: {error}</p>;
@@ -102,7 +127,7 @@ export default function HistoricoReservas() {
           </thead>
 
           <tbody className="bg-white divide-y divide-gray-200">
-            {data.map((reserva) => (
+            {reservasOrdenadas.map((reserva) => (
               <tr key={reserva._id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 text-sm text-gray-700">
                   {reserva.usuario.nome}
@@ -117,7 +142,7 @@ export default function HistoricoReservas() {
                   {reserva.espaco}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700">
-                   {formatarData(reserva.dia)} — {reserva.hora}
+                  {formatarData(reserva.dia)} — {reserva.hora}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700">
                   {reserva.usuario.categoria}
@@ -125,7 +150,7 @@ export default function HistoricoReservas() {
               </tr>
             ))}
 
-            {data.length === 0 && (
+            {dataHistorico.length === 0 && (
               <tr>
                 <td
                   colSpan={6}
