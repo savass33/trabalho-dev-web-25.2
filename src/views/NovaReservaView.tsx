@@ -79,7 +79,7 @@ export default function NovaReservaView({
     if(!validarMatricula(matricula)) return;
 
     try {
-      const response = await api.post("/reservar", reservaData);
+      const response = await api.post("/reservas", reservaData);
       
       console.log(response.data);
       setShowModal(true);

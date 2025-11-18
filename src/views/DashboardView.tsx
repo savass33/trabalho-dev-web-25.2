@@ -12,74 +12,109 @@ import SportsTennisIcon from "@mui/icons-material/SportsTennis";
 import StadiumIcon from "@mui/icons-material/Stadium";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import { getReservasHojePorEspaco } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
-interface Espaco { nome: string; reservas: number; }
-interface Setor  { nome: string; espacos: Espaco[]; }
+interface Espaco {
+  nome: string;
+  reservas: number;
+}
+interface Setor {
+  nome: string;
+  espacos: Espaco[];
+}
 
 export default function DashboardView() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [setores,setSetores] = useState<Setor[]>([
-    { nome: "Academia", espacos: [
-      { nome: "Sala Multifuncional", reservas: 0 },
-      { nome: "Spinning", reservas: 0 },
-      { nome: "Avaliação Física", reservas: 0 },
-      { nome: "Pilates", reservas: 0 },
-      { nome: "Sala X101", reservas: 0 },
-    ]},
-    { nome: "Arena Beach", espacos: [
-      { nome: "Arena Beach 1", reservas: 0 },
-      { nome: "Arena Beach 2", reservas: 0 },
-      { nome: "Arena Beach 3", reservas: 0 },
-      { nome: "Arena Beach 4", reservas: 0 },
-      { nome: "Arena Beach 5", reservas: 0 },
-      { nome: "Arena Beach 6", reservas: 0 },
-    ]},
-    { nome: "Área Verde", espacos: [
-      { nome: "Área Verde Campo Society", reservas: 0 },
-      { nome: "Área Verde Estádio de Atletismo", reservas: 0 },
-    ]},
-    { nome: "Ginásio Poliesportivo", espacos: [
-      { nome: "Quadra A", reservas: 0 },
-      { nome: "Quadra B", reservas: 0 },
-      { nome: "Quadra C", reservas: 0 },
-      { nome: "Sala Multifuncional", reservas: 0 },
-      { nome: "Sala GP1", reservas: 0 },
-      { nome: "Sala GP2", reservas: 0 },
-      { nome: "Sala GP4", reservas: 0 },
-    ]},
-    { nome: "Estádio de Atletismo", espacos: [
-      { nome: "Pista", reservas: 0 },
-      { nome: "Campo de Futebol", reservas: 0 },
-      { nome: "Sala EA1", reservas: 0 },
-    ]},
-    { nome: "Campo Society", espacos: [
-      { nome: "Campo Society", reservas: 0 },
-      { nome: "Caramanchão", reservas: 0 },
-    ]},
-    { nome: "Piscina", espacos: [{ nome: "Piscina Olímpica", reservas: 0 }]},
-    { nome: "Complexo de Tênis", espacos: [
-      { nome: "Quadra de Tênis 1", reservas: 0 },
-      { nome: "Quadra de Tênis 2", reservas: 0 },
-      { nome: "Quadra de Tênis 3", reservas: 0 },
-      { nome: "Quadra de Tênis 4", reservas: 0 },
-    ]},
+  const [setores, setSetores] = useState<Setor[]>([
+    {
+      nome: "Academia",
+      espacos: [
+        { nome: "Sala Multifuncional", reservas: 0 },
+        { nome: "Spinning", reservas: 0 },
+        { nome: "Avaliação Física", reservas: 0 },
+        { nome: "Pilates", reservas: 0 },
+        { nome: "Sala X101", reservas: 0 },
+      ],
+    },
+    {
+      nome: "Arena Beach",
+      espacos: [
+        { nome: "Arena Beach 1", reservas: 0 },
+        { nome: "Arena Beach 2", reservas: 0 },
+        { nome: "Arena Beach 3", reservas: 0 },
+        { nome: "Arena Beach 4", reservas: 0 },
+        { nome: "Arena Beach 5", reservas: 0 },
+        { nome: "Arena Beach 6", reservas: 0 },
+      ],
+    },
+    {
+      nome: "Área Verde",
+      espacos: [
+        { nome: "Área Verde Campo Society", reservas: 0 },
+        { nome: "Área Verde Estádio de Atletismo", reservas: 0 },
+      ],
+    },
+    {
+      nome: "Ginásio Poliesportivo",
+      espacos: [
+        { nome: "Quadra A", reservas: 0 },
+        { nome: "Quadra B", reservas: 0 },
+        { nome: "Quadra C", reservas: 0 },
+        { nome: "Sala Multifuncional", reservas: 0 },
+        { nome: "Sala GP1", reservas: 0 },
+        { nome: "Sala GP2", reservas: 0 },
+        { nome: "Sala GP4", reservas: 0 },
+      ],
+    },
+    {
+      nome: "Estádio de Atletismo",
+      espacos: [
+        { nome: "Pista", reservas: 0 },
+        { nome: "Campo de Futebol", reservas: 0 },
+        { nome: "Sala EA1", reservas: 0 },
+      ],
+    },
+    {
+      nome: "Campo Society",
+      espacos: [
+        { nome: "Campo Society", reservas: 0 },
+        { nome: "Caramanchão", reservas: 0 },
+      ],
+    },
+    { nome: "Piscina", espacos: [{ nome: "Piscina Olímpica", reservas: 0 }] },
+    {
+      nome: "Complexo de Tênis",
+      espacos: [
+        { nome: "Quadra de Tênis 1", reservas: 0 },
+        { nome: "Quadra de Tênis 2", reservas: 0 },
+        { nome: "Quadra de Tênis 3", reservas: 0 },
+        { nome: "Quadra de Tênis 4", reservas: 0 },
+      ],
+    },
   ]);
 
   // Mapeia nome do setor -> ícone Material
   const iconForSetor = (nome: string) => {
-    const commonProps = { fontSize: "small" as const, className: "text-[#0033A0]" };
-    if (nome.includes("Academia")) return <FitnessCenterIcon {...commonProps} />;
-    if (nome.includes("Arena Beach")) return <SportsVolleyballIcon {...commonProps} />;
+    const commonProps = {
+      fontSize: "small" as const,
+      className: "text-[#0033A0]",
+    };
+    if (nome.includes("Academia"))
+      return <FitnessCenterIcon {...commonProps} />;
+    if (nome.includes("Arena Beach"))
+      return <SportsVolleyballIcon {...commonProps} />;
     if (nome.includes("Área Verde")) return <ParkIcon {...commonProps} />;
     if (nome.includes("Ginásio")) return <StadiumIcon {...commonProps} />;
     if (nome.includes("Estádio")) return <DirectionsRunIcon {...commonProps} />;
-    if (nome.includes("Campo Society")) return <SportsSoccerIcon {...commonProps} />;
+    if (nome.includes("Campo Society"))
+      return <SportsSoccerIcon {...commonProps} />;
     if (nome.includes("Piscina")) return <PoolIcon {...commonProps} />;
     if (nome.includes("Tênis")) return <SportsTennisIcon {...commonProps} />;
     return <ParkIcon {...commonProps} />;
   };
-  
+
   useEffect(() => {
     async function carregarReservas() {
       try {
@@ -109,8 +144,20 @@ export default function DashboardView() {
   return (
     <div className="container mx-auto">
       <header className="mb-6">
-        <h2 className="text-2xl font-bold text-[#0033A0]">Espaços Disponíveis</h2>
-        <p className="text-gray-600">Selecione um espaço para ver a disponibilidade por dia e reservar.</p>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="bg-[#0033A0] text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2">
+            <span className="text-xl">👋</span>
+            <span className="font-semibold text-lg">
+              Olá, {user.nome.split(" ")[0]}
+            </span>
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold text-[#0033A0]">
+          Espaços Disponíveis
+        </h2>
+        <p className="text-gray-600">
+          Selecione um espaço para ver a disponibilidade por dia e reservar.
+        </p>
       </header>
 
       {setores.map((setor, i) => (
@@ -118,7 +165,9 @@ export default function DashboardView() {
           {/* Título de setor com ícone Material */}
           <div className="flex items-center gap-2 mb-3">
             {iconForSetor(setor.nome)}
-            <h3 className="text-xl font-semibold text-gray-900">{setor.nome}</h3>
+            <h3 className="text-xl font-semibold text-gray-900">
+              {setor.nome}
+            </h3>
           </div>
 
           {/* Cards */}
@@ -128,7 +177,9 @@ export default function DashboardView() {
                 key={j}
                 name={espaco.nome}
                 count={espaco.reservas}
-                onClick={() => navigate(`/espaco/${encodeURIComponent(espaco.nome)}`)}
+                onClick={() =>
+                  navigate(`/espaco/${encodeURIComponent(espaco.nome)}`)
+                }
               />
             ))}
           </div>
